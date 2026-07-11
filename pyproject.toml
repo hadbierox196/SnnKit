@@ -1,0 +1,56 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "snnkit"
+version = "0.1.0"
+description = "A JAX-native spiking neural network simulator: equation-based modeling, GPU-scale performance, and trainability via surrogate-gradient and local learning rules."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "snnkit contributors" }]
+keywords = ["spiking neural networks", "jax", "computational neuroscience", "neuromorphic"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
+dependencies = [
+    "jax>=0.4.30",
+    "jaxlib>=0.4.30",
+    "optax>=0.2.2",
+    "sympy>=1.12",
+    "numpy>=1.26",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.5", "black>=24.0"]
+connectome = ["networkx>=3.2", "plotly>=5.20", "requests>=2.31", "scipy>=1.11"]
+notebooks = ["jupyter>=1.0", "matplotlib>=3.8"]
+
+[project.urls]
+Homepage = "https://github.com/YOUR_USERNAME/snnkit"
+Issues = "https://github.com/YOUR_USERNAME/snnkit/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+snnkit = ["connectome/data/*.csv", "connectome/data/*.md"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP"]
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

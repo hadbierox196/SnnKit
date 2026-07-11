@@ -1,0 +1,57 @@
+{
+  "n_seeds": 3,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "bptt": {
+    "test_acc_mean": 0.9791666666666666,
+    "test_acc_std": 0.02946278254943948,
+    "test_accs": [
+      0.9375,
+      1.0,
+      1.0
+    ],
+    "wall_time_mean_s": 61.88140900929769
+  },
+  "superspike": {
+    "test_acc_mean": 0.9583333333333334,
+    "test_acc_std": 0.03897559777889522,
+    "test_accs": [
+      1.0,
+      0.90625,
+      0.96875
+    ],
+    "wall_time_mean_s": 6.892864386240642
+  },
+  "brian2_reference": {
+    "note": "Brian2 codegen target = 'numpy' (no C compiler available in this environment); Brian2's C++ codegen target is typically faster than its numpy target, so treat this as a conservative (favorable-to-snnkit) comparison, not a definitive one. snnkit timings are steady-state (post-JIT-warmup); Brian2 timings include its own code-generation overhead on first `run()`, which is the fairer like-for-like comparison since both are 'first real run' costs.",
+    "results": [
+      {
+        "n_neurons": 100,
+        "brian2_seconds": 0.4520981880000363,
+        "snnkit_seconds": 0.00017008199995416362,
+        "brian2_spikes": 2200,
+        "snnkit_spikes": 2200,
+        "spike_counts_match": true
+      },
+      {
+        "n_neurons": 1000,
+        "brian2_seconds": 0.39114131000008,
+        "snnkit_seconds": 0.002774425999973573,
+        "brian2_spikes": 22000,
+        "snnkit_spikes": 22000,
+        "spike_counts_match": true
+      },
+      {
+        "n_neurons": 5000,
+        "brian2_seconds": 0.45655423300001985,
+        "snnkit_seconds": 0.013311366000039015,
+        "brian2_spikes": 110000,
+        "snnkit_spikes": 110000,
+        "spike_counts_match": true
+      }
+    ]
+  }
+}
