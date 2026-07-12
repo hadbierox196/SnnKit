@@ -4,10 +4,10 @@ A JAX-native spiking neural network simulator: biologically faithful,
 equation-based modeling with GPU-scale performance via JAX, trainable via
 both surrogate-gradient BPTT and local learning rules (STDP, SuperSpike).
 
-[![CI](https://github.com/YOUR_USERNAME/snnkit/actions/workflows/ci.yml/badge.svg)](https://github.com/YOUR_USERNAME/snnkit/actions/workflows/ci.yml)
+[![CI](https://github.com/hadbierox196/snnkit/actions/workflows/ci.yml/badge.svg)](https://github.com/hadbierox196/snnkit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Replace `YOUR_USERNAME` above (and in `pyproject.toml`) once this repo
+> Replace `hadbierox196` above (and in `pyproject.toml`) once this repo
 > has a real home on GitHub, and the CI badge will start reporting
 > real status.
 
@@ -27,7 +27,7 @@ without a corresponding check.
 ## Quickstart
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/snnkit.git
+git clone https://github.com/hadbierox196/snnkit.git
 cd snnkit
 pip install -e ".[dev,connectome]"
 pytest -v

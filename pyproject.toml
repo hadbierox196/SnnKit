@@ -32,8 +32,8 @@ connectome = ["networkx>=3.2", "plotly>=5.20", "requests>=2.31", "scipy>=1.11"]
 notebooks = ["jupyter>=1.0", "matplotlib>=3.8"]
 
 [project.urls]
-Homepage = "https://github.com/YOUR_USERNAME/snnkit"
-Issues = "https://github.com/YOUR_USERNAME/snnkit/issues"
+Homepage = "https://github.com/hadbierox196/snnkit"
+Issues = "https://github.com/hadbierox196/snnkit/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]
