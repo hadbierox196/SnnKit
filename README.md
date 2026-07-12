@@ -7,9 +7,6 @@ both surrogate-gradient BPTT and local learning rules (STDP, SuperSpike).
 [![CI](https://github.com/hadbierox196/snnkit/actions/workflows/ci.yml/badge.svg)](https://github.com/hadbierox196/snnkit/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> Replace `hadbierox196` above (and in `pyproject.toml`) once this repo
-> has a real home on GitHub, and the CI badge will start reporting
-> real status.
 
 ## What this is
 
