@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>snnkit — a JAX-native spiking neural network simulator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#F5EFE2;
+    --paper:#FFFDF8;
+    --ink:#171410;
+    --ink-soft:rgba(23,20,16,.64);
+    --ink-faint:rgba(23,20,16,.4);
+    --yellow:#F2CB57;
+    --yellow-deep:#DDA827;
+    --pink:#F1C2D3;
+    --pink-deep:#DE8FA9;
+    --green:#B4C596;
+    --green-deep:#7F9A5C;
+    --blue:#AFC2EE;
+    --blue-deep:#6E8AD4;
+    --line:rgba(23,20,16,.12);
+    --radius-lg:28px;
+    --radius-md:20px;
+    --radius-sm:13px;
+    --font-display:'Barlow Condensed', sans-serif;
+    --font-body:'Poppins', sans-serif;
+    --font-mono:'IBM Plex Mono', monospace;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--cream);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-size:16px;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  img,svg{display:block;max-width:100%;}
+  a{color:inherit;}
+  h1,h2,h3,h4{font-family:var(--font-display);margin:0;letter-spacing:0.005em;font-weight:600;}
+  p{margin:0;}
+  code, .mono{font-family:var(--font-mono);}
+
+  :focus-visible{outline:2px solid var(--ink);outline-offset:3px;border-radius:4px;}
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 28px;
+  }
+  section{padding:96px 0;}
+  @media (max-width:720px){
+    section{padding:64px 0;}
+    .wrap{padding:0 20px;}
+  }
+
+  .eyebrow{
+    font-family:var(--font-mono);
+    font-size:12.5px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width:7px;height:7px;border-radius:50%;
+    background:var(--yellow-deep);
+    display:inline-block;
+    box-shadow:0 0 0 3px rgba(221,168,39,.25);
+  }
+
+  /* ---------- NAV ---------- */
+  .navbar{
+    position:sticky;
+    top:16px;
+    z-index:50;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0 20px;
+  }
+  .nav-pill{
+    width:100%;
+    max-width:1080px;
+    background:var(--ink);
+    border-radius:999px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:10px 10px 10px 22px;
+    box-shadow:0 12px 30px rgba(23,20,16,.22);
+  }
+  .nav-logo{
+    font-family:var(--font-display);
+    font-weight:700;
+    color:var(--paper);
+    font-size:17px;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    letter-spacing:-0.01em;
+  }
+  .nav-logo .dot{width:9px;height:9px;border-radius:50%;background:var(--yellow);}
+  .nav-links{
+    display:flex;
+    gap:26px;
+    list-style:none;
+    margin:0;padding:0;
+    font-size:14px;
+    color:rgba(255,253,248,.68);
+  }
+  .nav-links a{text-decoration:none;transition:color .15s ease;}
+  .nav-links a:hover{color:var(--paper);}
+  .nav-cta{
+    background:var(--yellow);
+    color:var(--ink);
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:13.5px;
+    padding:12px 18px;
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    border-radius:999px;
+    text-decoration:none;
+    white-space:nowrap;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .nav-cta:hover{background:var(--yellow-deep);transform:translateY(-1px);}
+
+  .nav-toggle{
+    display:none;
+    width:44px;height:44px;
+    flex-shrink:0;
+    background:transparent;
+    border:none;
+    border-radius:50%;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .nav-toggle:hover{background:rgba(255,253,248,.08);}
+  .nav-toggle span{
+    display:block;width:18px;height:2px;background:var(--paper);border-radius:2px;
+    position:relative;transition:background .2s ease;
+  }
+  .nav-toggle span::before,.nav-toggle span::after{
+    content:"";position:absolute;left:0;width:18px;height:2px;background:var(--paper);
+    border-radius:2px;transition:transform .2s ease,top .2s ease;
+  }
+  .nav-toggle span::before{top:-6px;}
+  .nav-toggle span::after{top:6px;}
+  .nav-toggle.open span{background:transparent;}
+  .nav-toggle.open span::before{top:0;transform:rotate(45deg);}
+  .nav-toggle.open span::after{top:0;transform:rotate(-45deg);}
+
+  .mobile-nav{
+    display:none;
+    flex-direction:column;
+    gap:2px;
+    width:100%;
+    max-width:1080px;
+    margin:8px auto 0;
+    background:var(--ink);
+    border-radius:20px;
+    padding:10px;
+    box-shadow:0 12px 30px rgba(23,20,16,.22);
+  }
+  .mobile-nav.open{display:flex;}
+  .mobile-nav a{
+    font-family:var(--font-body);
+    font-size:15.5px;
+    color:rgba(255,253,248,.75);
+    text-decoration:none;
+    padding:13px 16px;
+    border-radius:12px;
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    transition:background .15s ease,color .15s ease;
+  }
+  .mobile-nav a:hover, .mobile-nav a:active{background:rgba(255,253,248,.08);color:var(--paper);}
+  .mobile-nav .mobile-cta{
+    margin-top:6px;
+    background:var(--yellow);
+    color:var(--ink);
+    font-weight:700;
+    justify-content:center;
+  }
+
+  @media (max-width:860px){
+    .nav-links{display:none;}
+    .nav-cta{display:none;}
+    .nav-toggle{display:flex;}
+  }
+
+  /* ---------- HERO ---------- */
+  .hero{padding-top:64px;padding-bottom:72px;}
+  .hero-grid{
+    display:grid;
+    grid-template-columns:1.05fr .95fr;
+    gap:56px;
+    align-items:center;
+  }
+  @media (max-width:940px){
+    .hero-grid{grid-template-columns:1fr;gap:40px;}
+  }
+  .hero h1{
+    font-size:clamp(44px,7vw,70px);
+    font-weight:700;
+    line-height:1.0;
+    margin:18px 0 22px;
+  }
+  .hero h1 em{
+    font-style:normal;
+    background:linear-gradient(180deg,transparent 62%, var(--yellow) 62%);
+  }
+  .hero-sub{
+    font-size:17.5px;
+    color:var(--ink-soft);
+    max-width:480px;
+    margin-bottom:32px;
+  }
+  .hero-actions{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:34px;}
+  .btn{
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:14.5px;
+    padding:14px 24px;
+    border-radius:999px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:transform .15s ease, box-shadow .15s ease;
+    border:1px solid transparent;
+  }
+  .btn-primary{background:var(--ink);color:var(--paper);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(23,20,16,.22);}
+  .btn-ghost{background:transparent;color:var(--ink);border-color:var(--line);}
+  .btn-ghost:hover{background:var(--paper);}
+
+  .badge-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .badge{
+    font-family:var(--font-mono);
+    font-size:12px;
+    padding:7px 12px;
+    border-radius:999px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    color:var(--ink-soft);
+  }
+
+  /* hero neuron panel */
+  .neuron-card{
+    background:var(--ink);
+    border-radius:var(--radius-lg);
+    padding:22px 22px 18px;
+    color:var(--paper);
+    box-shadow:0 20px 50px rgba(23,20,16,.28);
+  }
+  .neuron-card-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:10px;
+  }
+  .neuron-card-title{font-size:13px;color:rgba(255,253,248,.55);font-family:var(--font-mono);}
+  .neuron-card-live{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:var(--yellow);
+    display:flex;align-items:center;gap:6px;
+  }
+  .neuron-card-live .pulse{
+    width:6px;height:6px;border-radius:50%;background:var(--yellow);
+    animation:pulse 1.4s ease-in-out infinite;
+  }
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+  canvas#neuronCanvas{width:100%;height:180px;border-radius:var(--radius-sm);background:#0F0D0A;display:block;}
+  .neuron-stats{
+    display:flex;
+    justify-content:space-between;
+    margin-top:16px;
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:rgba(255,253,248,.55);
+  }
+  .neuron-stats b{color:var(--paper);font-size:17px;font-weight:700;display:block;font-family:var(--font-display);margin-top:2px;}
+  .neuron-eq{
+    margin-top:14px;
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    color:rgba(255,253,248,.45);
+    border-top:1px solid rgba(255,253,248,.12);
+    padding-top:12px;
+  }
+
+  /* ---------- QUICKSTART ---------- */
+  .quickstart{padding-top:0;padding-bottom:80px;}
+  .term{
+    background:var(--ink);
+    border-radius:var(--radius-lg);
+    padding:26px 28px 30px;
+    color:var(--paper);
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:0;
+    overflow:hidden;
+  }
+  @media (max-width:820px){.term{grid-template-columns:1fr;}}
+  .term-col{padding:14px 20px;}
+  .term-col + .term-col{border-left:1px solid rgba(255,253,248,.1);}
+  @media (max-width:820px){
+    .term-col + .term-col{border-left:none;border-top:1px solid rgba(255,253,248,.1);}
+  }
+  .term-label{
+    font-family:var(--font-mono);font-size:11.5px;letter-spacing:.08em;
+    text-transform:uppercase;color:rgba(255,253,248,.4);margin-bottom:14px;
+  }
+  .term pre{
+    margin:0;font-family:var(--font-mono);font-size:13.4px;line-height:1.75;
+    color:#EAE6DC;white-space:pre-wrap;
+  }
+  .term .cmt{color:rgba(234,230,220,.4);}
+  .term .kw{color:var(--blue);}
+  .term .str{color:var(--yellow);}
+  .term .fn{color:var(--pink);}
+  .term .ok{color:var(--green);}
+
+  /* ---------- BENTO ---------- */
+  .section-head{margin-bottom:40px;max-width:620px;}
+  .section-head h2{font-size:clamp(31px,4vw,42px);font-weight:700;margin-top:14px;}
+  .section-head p{color:var(--ink-soft);margin-top:14px;font-size:16px;}
+
+  .bento{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+  }
+  @media (max-width:940px){.bento{grid-template-columns:1fr 1fr;}}
+  @media (max-width:560px){.bento{grid-template-columns:1fr;}}
+  .bento-card{
+    border-radius:var(--radius-md);
+    padding:26px 24px;
+    min-height:210px;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+    position:relative;
+    overflow:hidden;
+  }
+  .bento-card .tag{
+    font-family:var(--font-mono);
+    font-size:11.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    opacity:.62;
+  }
+  .bento-card .stat{
+    font-family:var(--font-display);
+    font-size:34px;
+    font-weight:700;
+    line-height:1.08;
+    margin-top:10px;
+  }
+  .bento-card .desc{font-size:13.5px;margin-top:10px;opacity:.72;max-width:22ch;}
+  .bento-yellow{background:var(--yellow);}
+  .bento-pink{background:var(--pink);}
+  .bento-green{background:var(--green);}
+  .bento-blue{background:var(--blue);}
+
+  .mini-chart{position:absolute;right:18px;bottom:18px;opacity:.55;}
+
+  /* ---------- BENCHMARKS ---------- */
+  .bench-grid{
+    display:grid;
+    grid-template-columns:1.15fr .85fr;
+    gap:20px;
+  }
+  @media (max-width:900px){.bench-grid{grid-template-columns:1fr;}}
+  .panel{
+    border-radius:var(--radius-lg);
+    padding:28px;
+  }
+  .panel-dark{background:var(--ink);color:var(--paper);}
+  .panel-pink{background:var(--pink);}
+  .panel-title{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
+  }
+  .panel-title h3{font-size:18px;}
+  .panel-dark .panel-title span, .panel-dark .panel-sub{color:rgba(255,253,248,.5);}
+  .panel-sub{font-size:12.5px;font-family:var(--font-mono);}
+
+  .table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  table.bench{width:100%;min-width:380px;border-collapse:collapse;font-family:var(--font-mono);font-size:13.5px;}
+  table.bench th{
+    text-align:left;font-weight:500;color:rgba(255,253,248,.45);
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    padding-bottom:10px;border-bottom:1px solid rgba(255,253,248,.14);
+  }
+  table.bench td{padding:13px 0;border-bottom:1px solid rgba(255,253,248,.08);}
+  table.bench tr:last-child td{border-bottom:none;}
+  .chip{
+    display:inline-block;font-size:11px;padding:3px 9px;border-radius:999px;
+    background:rgba(180,197,150,.22);color:var(--green);font-family:var(--font-mono);
+  }
+  .fast{color:var(--yellow);font-weight:600;}
+
+  .compare-row{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 0;border-bottom:1px solid rgba(23,20,16,.14);
+  }
+  .compare-row:last-of-type{border-bottom:none;}
+  .compare-name{font-family:var(--font-display);font-weight:700;font-size:16px;}
+  .compare-sub{font-size:12px;color:var(--ink-soft);font-family:var(--font-mono);margin-top:2px;}
+  .compare-num{font-family:var(--font-display);font-size:27px;font-weight:700;text-align:right;}
+  .compare-time{font-size:11.5px;font-family:var(--font-mono);color:var(--ink-soft);text-align:right;margin-top:2px;}
+  .panel-foot{
+    margin-top:18px;font-size:12px;color:rgba(23,20,16,.6);
+    border-top:1px dashed rgba(23,20,16,.25);padding-top:14px;
+  }
+
+  /* ---------- ARCHITECTURE ---------- */
+  .arch{display:grid;grid-template-columns:.9fr 1.1fr;gap:56px;align-items:center;}
+  @media (max-width:900px){.arch{grid-template-columns:1fr;gap:32px;}}
+  .arch-list{margin-top:26px;display:flex;flex-direction:column;gap:20px;}
+  .arch-item{display:flex;gap:14px;}
+  .arch-dot{
+    width:8px;height:8px;border-radius:50%;margin-top:8px;flex-shrink:0;background:var(--ink);
+  }
+  .arch-item h4{font-size:15.5px;margin-bottom:4px;}
+  .arch-item p{font-size:14px;color:var(--ink-soft);}
+  .arch-code{
+    background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-md);
+    padding:24px;
+  }
+  .arch-code .term-label{color:var(--ink-faint);}
+  .arch-code pre{color:var(--ink);font-family:var(--font-mono);font-size:13px;line-height:1.8;margin:0;white-space:pre-wrap;}
+  .arch-code .kw{color:var(--blue-deep);}
+  .arch-code .str{color:var(--yellow-deep);}
+  .arch-code .fn{color:var(--pink-deep);}
+  .arch-code .cmt{color:var(--ink-faint);}
+
+  /* ---------- DEMOS ---------- */
+  .demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;}
+  @media (max-width:860px){.demo-grid{grid-template-columns:1fr;}}
+  .demo-card{
+    border-radius:var(--radius-md);
+    padding:26px;
+    background:var(--paper);
+    border:1px solid var(--line);
+    display:flex;flex-direction:column;gap:14px;
+    transition:transform .18s ease, box-shadow .18s ease;
+  }
+  .demo-card:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(23,20,16,.1);}
+  .demo-swatch{width:38px;height:38px;border-radius:11px;}
+  .demo-card h4{font-size:17px;}
+  .demo-card p{font-size:13.8px;color:var(--ink-soft);flex-grow:1;}
+  .demo-link{
+    font-family:var(--font-mono);font-size:12.5px;font-weight:600;text-decoration:none;
+    color:var(--ink);display:flex;align-items:center;gap:6px;
+  }
+
+  /* ---------- HONESTY LEDGER ---------- */
+  .ledger{
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    padding:56px 0;
+  }
+  .ledger-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:40px;}
+  @media (max-width:860px){.ledger-grid{grid-template-columns:1fr;gap:36px;}}
+  .ledger-col h4{
+    font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--ink-soft);margin-bottom:16px;display:flex;align-items:center;gap:8px;
+  }
+  .ledger-col h4::before{content:"";width:6px;height:6px;border-radius:50%;}
+  .ledger-col.shipped h4::before{background:var(--green-deep);}
+  .ledger-col.tracked h4::before{background:var(--yellow-deep);}
+  .ledger-col.out h4::before{background:var(--ink-faint);}
+  .ledger-col ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:11px;}
+  .ledger-col li{
+    font-size:14px;padding-left:16px;position:relative;color:var(--ink);line-height:1.5;
+  }
+  .ledger-col li::before{content:"—";position:absolute;left:0;color:var(--ink-faint);}
+  .ledger-col.out li{color:var(--ink-soft);}
+
+  /* ---------- FOOTER ---------- */
+  footer{padding:0 0 80px;}
+  .cta-block{
+    background:var(--ink);
+    border-radius:var(--radius-lg);
+    padding:56px 48px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:40px;
+    color:var(--paper);
+  }
+  @media (max-width:780px){.cta-block{flex-direction:column;align-items:flex-start;padding:40px 28px;}}
+  .cta-block h3{font-size:32px;font-weight:700;max-width:360px;margin-bottom:14px;}
+  .cta-block p{color:rgba(255,253,248,.6);font-size:14.5px;max-width:340px;}
+  .cta-right{display:flex;flex-direction:column;gap:14px;align-items:flex-end;}
+  @media (max-width:780px){.cta-right{align-items:flex-start;width:100%;}}
+  .cta-code{
+    font-family:var(--font-mono);font-size:13px;background:rgba(255,253,248,.08);
+    padding:12px 18px;border-radius:10px;color:var(--yellow);white-space:nowrap;
+  }
+  .cta-links{display:flex;gap:18px;font-size:13.5px;}
+  .cta-links a{text-decoration:none;color:rgba(255,253,248,.7);}
+  .cta-links a:hover{color:var(--paper);}
+  .foot-note{
+    text-align:center;margin-top:26px;font-size:12.5px;color:var(--ink-faint);font-family:var(--font-mono);
+  }
+
+  /* ---------- SMALL-SCREEN REFINEMENTS ---------- */
+  a, button{-webkit-tap-highlight-color:transparent;}
+
+  @media (max-width:600px){
+    .hero{padding-top:40px;padding-bottom:8px;}
+    .hero-actions{flex-direction:column;align-items:stretch;}
+    .hero-actions .btn{justify-content:center;}
+    .badge-row{gap:8px;}
+    .badge{font-size:11px;padding:6px 10px;}
+    canvas#neuronCanvas{height:150px;}
+    .neuron-stats{font-size:11px;}
+    .neuron-stats b{font-size:15px;}
+    .term{padding:20px 16px 22px;}
+    .term-col{padding:14px 4px;}
+    .bento-card{padding:22px 20px;min-height:auto;}
+    .panel{padding:22px 20px;}
+    .compare-row{flex-direction:row;align-items:flex-start;}
+    .cta-block{padding:32px 22px;}
+    .cta-block h3{font-size:26px;}
+    .cta-code{white-space:normal;word-break:break-all;font-size:12px;}
+    .demo-card{padding:22px 20px;}
+    .arch-code{padding:20px 18px;}
+  }
+
+  @media (max-width:380px){
+    .nav-pill{padding:8px 8px 8px 16px;}
+    .nav-logo{font-size:15.5px;}
+    .badge-row{flex-direction:column;align-items:flex-start;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    html{scroll-behavior:auto;}
+    .pulse{animation:none;}
+    *{transition:none !important;}
+  }
+</style>
+</head>
+<body>
+
+<div class="navbar">
+  <div class="nav-pill">
+    <div class="nav-logo"><span class="dot"></span>snnkit</div>
+    <ul class="nav-links">
+      <li><a href="#engine">Engine</a></li>
+      <li><a href="#benchmarks">Benchmarks</a></li>
+      <li><a href="#architecture">Architecture</a></li>
+      <li><a href="#demos">Demos</a></li>
+      <li><a href="#honesty">Scope</a></li>
+    </ul>
+    <a class="nav-cta" href="#quickstart">pip install snnkit</a>
+    <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="mobileNav" aria-label="Toggle navigation menu">
+      <span></span>
+    </button>
+  </div>
+  <nav class="mobile-nav" id="mobileNav">
+    <a href="#engine">Engine</a>
+    <a href="#benchmarks">Benchmarks</a>
+    <a href="#architecture">Architecture</a>
+    <a href="#demos">Demos</a>
+    <a href="#honesty">Scope</a>
+    <a class="mobile-cta" href="#quickstart">pip install snnkit</a>
+  </nav>
+</div>
+
+<main class="wrap">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-grid">
+      <div>
+        <div class="eyebrow">JAX-NATIVE · OPEN SOURCE · MIT LICENSED</div>
+        <h1>Spiking networks<br>that actually <em>train.</em></h1>
+        <p class="hero-sub">A spiking neural network simulator built on JAX: equation-based neuron dynamics, GPU-scale performance from sparse graphs, and two real ways to train — surrogate-gradient BPTT and local rules like STDP and SuperSpike.</p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href="#quickstart">Get started →</a>
+          <a class="btn btn-ghost" href="#benchmarks">See the benchmarks</a>
+        </div>
+        <div class="badge-row">
+          <span class="badge">MIT license</span>
+          <span class="badge">50 / 50 tests passing</span>
+          <span class="badge">v0.1.0 · alpha</span>
+          <span class="badge">Phases 1–3 shipped</span>
+        </div>
+      </div>
+
+      <div class="neuron-card">
+        <div class="neuron-card-head">
+          <span class="neuron-card-title">core/neuron.py — live LIF trace</span>
+          <span class="neuron-card-live"><span class="pulse"></span>SIMULATING</span>
+        </div>
+        <canvas id="neuronCanvas" width="600" height="360" aria-label="Live animated trace of a leaky integrate-and-fire neuron's membrane potential, spiking periodically"></canvas>
+        <div class="neuron-stats">
+          <div>membrane τ<b>20 ms</b></div>
+          <div>threshold<b>v ≥ 1.0</b></div>
+          <div>spikes fired<b id="spikeCount">0</b></div>
+        </div>
+        <div class="neuron-eq">dv/dt = (I − v) / τ &nbsp;·&nbsp; reset to 0 on threshold crossing</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- QUICKSTART -->
+  <section class="quickstart" id="quickstart">
+    <div class="term">
+      <div class="term-col">
+        <div class="term-label">install</div>
+        <pre><span class="cmt"># clone, then install with dev + connectome extras</span>
+$ git clone https://github.com/YOUR_USERNAME/snnkit.git
+$ <span class="fn">cd</span> snnkit
+$ pip install -e <span class="str">".[dev,connectome]"</span>
+$ pytest -v
+<span class="ok">50 passed in 88.4s</span></pre>
+      </div>
+      <div class="term-col">
+        <div class="term-label">quickstart</div>
+        <pre><span class="kw">import</span> jax.numpy <span class="kw">as</span> jnp
+<span class="kw">from</span> snnkit.core.neuron <span class="kw">import</span> LIFParams, simulate_lif
+
+params = <span class="fn">LIFParams</span>(tau=20e-3, v_th=1.0, dt=1e-3)
+i_trace = jnp.full((1000,), 1.5)
+v, spikes = <span class="fn">simulate_lif</span>(i_trace, params)
+
+<span class="fn">print</span>(<span class="str">f"{spikes.sum()} spikes / 1000 steps"</span>)
+<span class="cmt"># 45 spikes / 1000 steps</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- ENGINE / BENTO -->
+  <section id="engine">
+    <div class="section-head">
+      <div class="eyebrow">WHAT'S ACTUALLY BUILT</div>
+      <h2>Not a demo. A tested engine.</h2>
+      <p>Every number on this page comes from a real test or benchmark script in the repo — nothing here is asserted without a corresponding check.</p>
+    </div>
+
+    <div class="bento">
+      <div class="bento-card bento-yellow">
+        <div>
+          <span class="tag">Core Engine</span>
+          <div class="stat">50 / 50<br>tests passing</div>
+        </div>
+        <div class="desc">LIF + Izhikevich neurons, sparse synapses, ring-buffer delays, a minimal equation parser — validated against analytical formulas, not eyeballed.</div>
+        <svg class="mini-chart" width="64" height="34" viewBox="0 0 64 34" fill="none">
+          <rect x="0" y="18" width="8" height="16" rx="2" fill="#171410" opacity=".55"/>
+          <rect x="12" y="10" width="8" height="24" rx="2" fill="#171410" opacity=".55"/>
+          <rect x="24" y="22" width="8" height="12" rx="2" fill="#171410" opacity=".55"/>
+          <rect x="36" y="4" width="8" height="30" rx="2" fill="#171410" opacity=".8"/>
+          <rect x="48" y="14" width="8" height="20" rx="2" fill="#171410" opacity=".55"/>
+        </svg>
+      </div>
+
+      <div class="bento-card bento-pink">
+        <div>
+          <span class="tag">Real Connectome</span>
+          <div class="stat">309 neurons<br>2,961 synapses</div>
+        </div>
+        <div class="desc">White et al. 1986 <em>C. elegans</em> connectome, sourced live from OpenWorm (MIT), loaded into the same sparse graph format as any other network.</div>
+        <svg class="mini-chart" width="70" height="34" viewBox="0 0 70 34" fill="none">
+          <path d="M0 28 C 14 30, 20 6, 34 14 S 56 30, 70 4" stroke="#171410" stroke-width="2" opacity=".55" fill="none"/>
+        </svg>
+      </div>
+
+      <div class="bento-card bento-green">
+        <div>
+          <span class="tag">Two Training Paths</span>
+          <div class="stat">BPTT +<br>local rules</div>
+        </div>
+        <div class="desc">Surrogate-gradient backprop-through-time via a custom VJP, and a feedback-alignment SuperSpike variant with zero backprop through time.</div>
+        <svg class="mini-chart" width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="17" stroke="#171410" stroke-width="2" opacity=".3"/>
+          <path d="M20 3 A17 17 0 0 1 34.7 27.5 L20 20 Z" fill="#171410" opacity=".5"/>
+        </svg>
+      </div>
+
+      <div class="bento-card bento-blue">
+        <div>
+          <span class="tag">Sparse by Default</span>
+          <div class="stat">Spike-index,<br>not dense</div>
+        </div>
+        <div class="desc">A padded sparse spike-event format (batch/neuron/time indices) instead of dense 0/1 tensors — spec'd before it was built.</div>
+        <svg class="mini-chart" width="60" height="34" viewBox="0 0 60 34" fill="none">
+          <circle cx="6" cy="26" r="2.4" fill="#171410" opacity=".6"/>
+          <circle cx="18" cy="10" r="2.4" fill="#171410" opacity=".6"/>
+          <circle cx="30" cy="20" r="2.4" fill="#171410" opacity=".6"/>
+          <circle cx="42" cy="6" r="2.4" fill="#171410" opacity=".6"/>
+          <circle cx="54" cy="16" r="2.4" fill="#171410" opacity=".6"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <!-- BENCHMARKS -->
+  <section id="benchmarks">
+    <div class="section-head">
+      <div class="eyebrow">MEASURED, NOT CLAIMED</div>
+      <h2>Benchmarks, with the caveats included.</h2>
+      <p>Identical LIF dynamics run in both snnkit and Brian2 — spike counts match exactly at every scale tested. Training comparisons run across 3 random seeds, mean ± std reported.</p>
+    </div>
+
+    <div class="bench-grid">
+      <div class="panel panel-dark">
+        <div class="panel-title">
+          <h3>Engine speed vs. Brian2</h3>
+          <span class="panel-sub">steady-state, JIT warmed</span>
+        </div>
+        <div class="table-scroll">
+          <table class="bench">
+            <thead>
+              <tr><th>neurons</th><th>Brian2</th><th>snnkit</th><th>spikes</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>100</td><td>0.452s</td><td class="fast">0.0002s</td><td><span class="chip">match · 2,200</span></td></tr>
+              <tr><td>1,000</td><td>0.391s</td><td class="fast">0.0028s</td><td><span class="chip">match · 22,000</span></td></tr>
+              <tr><td>5,000</td><td>0.457s</td><td class="fast">0.0133s</td><td><span class="chip">match · 110,000</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="panel-foot" style="border-color:rgba(255,253,248,.18);color:rgba(255,253,248,.5);">
+          Brian2 ran on its <code>numpy</code> codegen target (no C compiler in the test sandbox) — its C++ target is typically faster. Treated as conservative, not definitive.
+        </div>
+      </div>
+
+      <div class="panel panel-pink">
+        <div class="panel-title">
+          <h3 style="color:var(--ink);">BPTT vs. SuperSpike</h3>
+        </div>
+        <div class="compare-row">
+          <div>
+            <div class="compare-name">BPTT</div>
+            <div class="compare-sub">surrogate gradient</div>
+          </div>
+          <div>
+            <div class="compare-num">97.9<span style="font-size:14px;">±2.9%</span></div>
+            <div class="compare-time">61.9s wall time</div>
+          </div>
+        </div>
+        <div class="compare-row">
+          <div>
+            <div class="compare-name">SuperSpike</div>
+            <div class="compare-sub">local, feedback-alignment</div>
+          </div>
+          <div>
+            <div class="compare-num">95.8<span style="font-size:14px;">±3.9%</span></div>
+            <div class="compare-time">6.9s wall time</div>
+          </div>
+        </div>
+        <div class="panel-foot">3 seeds · synthetic SHD-shaped task (real SHD swap-in via <code>tonic</code>) · both within each other's std.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ARCHITECTURE -->
+  <section id="architecture">
+    <div class="arch">
+      <div>
+        <div class="eyebrow">DESIGN PHILOSOPHY</div>
+        <h2>Dynamics and structure are kept separate.</h2>
+        <div class="arch-list">
+          <div class="arch-item">
+            <span class="arch-dot"></span>
+            <div><h4>Core is plain functions</h4><p>Neuron dynamics are arrays in, arrays out — JIT-compiles cleanly, no hidden state.</p></div>
+          </div>
+          <div class="arch-item">
+            <span class="arch-dot"></span>
+            <div><h4>The object API is a thin wrapper</h4><p><code>NeuronGroup</code> handles bookkeeping and equation parsing only — every number still comes from core.</p></div>
+          </div>
+          <div class="arch-item">
+            <span class="arch-dot"></span>
+            <div><h4>One sparse graph format, two use cases</h4><p>The same <code>SparseWeights</code> built for synaptic current injection holds a real biological connectome, unmodified.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="arch-code">
+        <div class="term-label">src/snnkit/api/neuron_group.py</div>
+        <pre><span class="kw">from</span> snnkit.api.neuron_group <span class="kw">import</span> NeuronGroup
+
+group = <span class="fn">NeuronGroup</span>(
+    n=100,
+    equation=<span class="str">"dv/dt = (I - v) / tau"</span>,
+    v_th=1.0,
+    v_reset=0.0,
+    dt=1e-3
+)
+<span class="cmt"># parser path vs. hand-written path:</span>
+<span class="cmt"># max abs error &lt; 1e-5, rms error &lt; 1e-6</span></pre>
+      </div>
+    </div>
+  </section>
+
+  <!-- DEMOS -->
+  <section id="demos">
+    <div class="section-head">
+      <div class="eyebrow">RUN IT YOURSELF</div>
+      <h2>Three notebooks, zero setup.</h2>
+      <p>Each one installs snnkit, runs, and validates its own output against a known reference — open in Colab and run all.</p>
+    </div>
+    <div class="demo-grid">
+      <div class="demo-card">
+        <div class="demo-swatch" style="background:var(--yellow);"></div>
+        <h4>Single Neuron</h4>
+        <p>Simulates one LIF neuron and checks the firing rate against the closed-form analytical formula, live.</p>
+        <a class="demo-link" href="#">week01_single_neuron.ipynb →</a>
+      </div>
+      <div class="demo-card">
+        <div class="demo-swatch" style="background:var(--pink);"></div>
+        <h4>Izhikevich Patterns</h4>
+        <p>Reproduces regular-spiking, chattering, and fast-spiking regimes from Izhikevich (2003) with the paper's own parameters.</p>
+        <a class="demo-link" href="#">week06_izhikevich_validation.ipynb →</a>
+      </div>
+      <div class="demo-card">
+        <div class="demo-swatch" style="background:var(--blue);"></div>
+        <h4>Connectome Spread</h4>
+        <p>Loads the real <em>C. elegans</em> connectome and animates pathology diffusion — scrub through time interactively.</p>
+        <a class="demo-link" href="#">connectome_disease_spread_demo.ipynb →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HONESTY LEDGER -->
+  <section class="ledger" id="honesty">
+    <div class="section-head" style="margin-bottom:36px;">
+      <div class="eyebrow">SCOPE, STATED PLAINLY</div>
+      <h2>What's shipped, what's tracked, what isn't here.</h2>
+    </div>
+    <div class="ledger-grid">
+      <div class="ledger-col shipped">
+        <h4>Shipped</h4>
+        <ul>
+          <li>Core engine: LIF, Izhikevich, sparse synapses, delays, parser</li>
+          <li>BPTT + STDP + SuperSpike training, benchmarked across seeds</li>
+          <li>Real connectome extension, validated diffusion model</li>
+          <li>50 tests, CI on every push, clean-install verified</li>
+        </ul>
+      </div>
+      <div class="ledger-col tracked">
+        <h4>Tracked, not dropped</h4>
+        <ul>
+          <li>E-prop — scoped as a stretch goal, not attempted</li>
+          <li>Real SHD dataset swap-in (synthetic stand-in used here)</li>
+          <li>API stability policy, MkDocs site, experiment logging</li>
+        </ul>
+      </div>
+      <div class="ledger-col out">
+        <h4>Not in this repo</h4>
+        <ul>
+          <li>Customer discovery, positioning, fundraising — real-world actions, not code</li>
+          <li>Hardware deployment layer — future, funded phase</li>
+          <li>Any clinical or biological validity claim for the connectome demo</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="cta-block">
+      <div>
+        <h3>Clone it, test it, break it.</h3>
+        <p>MIT licensed. Every claim on this page is one command away from being checked.</p>
+      </div>
+      <div class="cta-right">
+        <div class="cta-code">pip install -e ".[dev,connectome]"</div>
+        <div class="cta-links">
+          <a href="#">GitHub ↗</a>
+          <a href="#">Issues ↗</a>
+          <a href="#">MIT License ↗</a>
+        </div>
+      </div>
+    </div>
+    <div class="foot-note">Built following a 22-week roadmap · Phases 1–3 shipped · Phases 4–5 are real-world, not code</div>
+  </footer>
+
+</main>
+
+<script>
+  // Mobile nav: toggle the dropdown panel, close it on link tap.
+  (function(){
+    var toggle = document.getElementById('navToggle');
+    var menu = document.getElementById('mobileNav');
+    if (!toggle || !menu) return;
+
+    function closeMenu(){
+      menu.classList.remove('open');
+      toggle.classList.remove('open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+    function toggleMenu(){
+      var isOpen = menu.classList.toggle('open');
+      toggle.classList.toggle('open', isOpen);
+      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', toggleMenu);
+    menu.querySelectorAll('a').forEach(function(a){
+      a.addEventListener('click', closeMenu);
+    });
+    document.addEventListener('keydown', function(e){
+      if (e.key === 'Escape') closeMenu();
+    });
+  })();
+</script>
+<script>
+  // Live LIF neuron animation in the hero card — real forward-Euler
+  // integration of dv/dt = (I - v) / tau with threshold reset, matching
+  // snnkit.core.neuron's actual dynamics, not a decorative squiggle.
+  (function(){
+    var canvas = document.getElementById('neuronCanvas');
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    var tau = 0.02, vth = 1.0, vreset = 0.0, dt = 0.001;
+    var v = 0, t = 0, spikeCount = 0;
+    var trace = [];
+    var maxPoints = 260;
+    var spikeFlash = 0;
+    var countEl = document.getElementById('spikeCount');
+
+    function currentInput(t){
+      // slowly varying drive plus jitter, occasionally supra-threshold
+      return 1.15 + 0.5*Math.sin(t*0.7) + (Math.random()-0.5)*0.35;
+    }
+
+    function step(){
+      var I = currentInput(t);
+      var dv = (dt/tau) * (-(v - vreset) + I);
+      v = v + dv;
+      var spiked = false;
+      if (v >= vth){
+        spiked = true;
+        v = vreset;
+        spikeCount++;
+        spikeFlash = 6;
+        if (countEl) countEl.textContent = spikeCount;
+      }
+      trace.push({v:v, spiked:spiked});
+      if (trace.length > maxPoints) trace.shift();
+      t += dt*8; // advance faster than real-time for a lively display
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,W,H);
+      // grid
+      ctx.strokeStyle = 'rgba(234,230,220,0.06)';
+      ctx.lineWidth = 1;
+      for(var gx=0; gx<W; gx+=40){ ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+      // threshold line
+      var thY = H - (vth/1.3)*H*0.72 - H*0.06;
+      ctx.strokeStyle = 'rgba(242,203,87,0.35)';
+      ctx.setLineDash([5,5]);
+      ctx.beginPath(); ctx.moveTo(0, thY); ctx.lineTo(W, thY); ctx.stroke();
+      ctx.setLineDash([]);
+
+      // trace
+      ctx.beginPath();
+      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = '#F2CB57';
+      for(var i=0;i<trace.length;i++){
+        var x = (i/maxPoints)*W;
+        var y = H - (trace[i].v/1.3)*H*0.72 - H*0.06;
+        if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.stroke();
+
+      // spike ticks
+      for(var j=0;j<trace.length;j++){
+        if (trace[j].spiked){
+          var sx = (j/maxPoints)*W;
+          ctx.strokeStyle = 'rgba(241,194,211,0.85)';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.moveTo(sx, thY);
+          ctx.lineTo(sx, thY - 26);
+          ctx.stroke();
+        }
+      }
+
+      if (spikeFlash > 0){
+        ctx.fillStyle = 'rgba(242,203,87,' + (spikeFlash/6*0.12) + ')';
+        ctx.fillRect(0,0,W,H);
+        spikeFlash--;
+      }
+    }
+
+    function loop(){
+      step();
+      draw();
+      if (!reduceMotion) requestAnimationFrame(loop);
+    }
+
+    if (reduceMotion){
+      for(var k=0;k<maxPoints;k++) step();
+      draw();
+      if (countEl) countEl.textContent = spikeCount;
+    } else {
+      requestAnimationFrame(loop);
+    }
+  })();
+</script>
+
+</body>
+</html>
